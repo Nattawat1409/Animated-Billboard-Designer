@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animated Billboard Designer — CPE361 Computer Graphics</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ─── SIDEBAR ───────────────────────────────────────────── -->
+  <aside id="sidebar">
+    <div id="sidebar-inner">
+
+      <div class="logo">
+        <div class="logo-title">BILLBOARD<br>DESIGNER</div>
+        <div class="logo-sub">CPE361 · BÉZIER MORPH</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Shape drawing controls -->
+      <section>
+        <div class="s-label">Shape</div>
+        <button class="btn accent" id="btn-draw">✏  Draw New Shape</button>
+        <button class="btn" id="btn-add" disabled>＋ Add to Animation</button>
+        <button class="btn" id="btn-discard" disabled>✕  Discard Shape</button>
+      </section>
+
+      <!-- Animation controls -->
+      <section>
+        <div class="s-label">Animation</div>
+        <button class="btn accent" id="btn-play" disabled>▶  Play</button>
+        <button class="btn" id="btn-stop" disabled>■  Stop</button>
+        <button class="btn danger" id="btn-reset">⟲  Reset All</button>
+      </section>
+
+      <!-- Speed slider -->
+      <section>
+        <div class="s-label">Transition Speed</div>
+        <div class="slider-row">
+          <label>Slow</label>
+          <input type="range" id="speed-slider" min="0.3" max="4" step="0.1" value="1.8">
+          <label>Fast</label>
+        </div>
+        <div class="speed-readout"><span id="speed-val">1.8s</span></div>
+      </section>
+
+      <!-- Evaluation method toggle (for academic verification) -->
+      <section>
+        <div class="s-label">Bézier Method</div>
+        <select id="bezier-method" class="select">
+          <option value="canvas">Canvas API (default)</option>
+          <option value="bernstein">Bernstein Polynomial</option>
+          <option value="matrix">Matrix Form  G·M·T</option>
+          <option value="decasteljau">de Casteljau Recursive</option>
+        </select>
+      </section>
+
+      <!-- Queue -->
+      <section>
+        <div class="s-label">Queue (<span id="q-count">0</span> shapes)</div>
+        <div id="queue-list"></div>
+      </section>
+
+      <!-- Status box -->
+      <div id="status-box">
+        <div id="st-mode">IDLE</div>
+        <div id="st-pts"></div>
+        <div id="st-msg">Click "Draw New Shape" or press Play to see presets.</div>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- ─── CANVAS AREA ───────────────────────────────────────── -->
+  <main id="canvas-wrap">
+    <div id="canvas-tag">CANVAS</div>
+    <canvas id="canvas"></canvas>
+    <div id="hint">[ D ] Draw  ·  [ Space ] Close  ·  [ P ] Play/Stop  ·  [ Esc ] Discard</div>
+    <div id="t-display"></div>
+  </main>
+
+  <!-- Toast notification -->
+  <div id="toast"></div>
+
+  <!-- ─── SCRIPTS (load order matters) ──────────────────────── -->
+  <script src="js/bezier.js"></script>
+  <script src="js/shapes.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
