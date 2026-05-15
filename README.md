@@ -1,4 +1,4 @@
-# Animated Billboard Designer
+# 🎨Animated Billboard Designer
 **CPE361 Computer Graphics — Module 3-2 (Bézier Curve)**
 
 Shape-morphing animation tool for digital signage. Users draw closed shapes
