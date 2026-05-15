@@ -18,9 +18,9 @@
 // ──────────────────────────────────────────────────────────────────────────
 //  DOM helpers
 // ──────────────────────────────────────────────────────────────────────────
-const $       = (id) => document.getElementById(id);
-const canvas  = $('canvas');
-const ctx     = canvas.getContext('2d');
+const $ = (id) => document.getElementById(id);
+const canvas = $('canvas');
+const ctx = canvas.getContext('2d');
 
 // ──────────────────────────────────────────────────────────────────────────
 //  Canvas sizing  (once on load — coordinates are stored in canvas space)
@@ -631,4 +631,34 @@ function toast(msg) {
   $('btn-play').disabled = false;
   updateQueueUI();
   staticRender();
+})();
+
+// ══════════════════════════════════════════════════════════════════════════
+//  THEME TOGGLE  (light / dark)
+// ══════════════════════════════════════════════════════════════════════════
+
+(function initTheme() {
+  const root   = document.documentElement;
+  const btn    = $('btn-theme');
+  const stored = localStorage.getItem('billboard-theme');
+
+  function applyTheme(theme) {
+    if (theme === 'light') {
+      root.setAttribute('data-theme', 'light');
+      btn.textContent = '☽';
+      btn.title = 'Switch to dark theme';
+    } else {
+      root.removeAttribute('data-theme');
+      btn.textContent = '☀';
+      btn.title = 'Switch to light theme';
+    }
+    localStorage.setItem('billboard-theme', theme);
+  }
+
+  applyTheme(stored === 'light' ? 'light' : 'dark');
+
+  btn.addEventListener('click', () => {
+    const current = root.getAttribute('data-theme');
+    applyTheme(current === 'light' ? 'dark' : 'light');
+  });
 })();

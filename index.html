@@ -12,9 +12,15 @@
   <aside id="sidebar">
     <div id="sidebar-inner">
 
-      <div class="logo">
-        <div class="logo-title">BILLBOARD<br>DESIGNER</div>
-        <div class="logo-sub">CPE361 · BÉZIER MORPH</div>
+      <div class="logo-row">
+        <div class="logo">
+          <div class="logo-title">
+            <span class="logo-badge"></span>
+            <span class="logo-title-text">BILLBOARD<br>DESIGNER</span>
+          </div>
+          <div class="logo-sub">CPE381 · BÉZIER MORPH</div>
+        </div>
+        <button id="btn-theme" title="Toggle light / dark theme">☀</button>
       </div>
 
       <div class="divider"></div>
@@ -39,9 +45,9 @@
       <section>
         <div class="s-label">Transition Speed</div>
         <div class="slider-row">
-          <label>Slow</label>
-          <input type="range" id="speed-slider" min="0.3" max="4" step="0.1" value="1.8">
           <label>Fast</label>
+          <input type="range" id="speed-slider" min="0.3" max="4" step="0.1" value="1.8">
+          <label>Slow</label>
         </div>
         <div class="speed-readout"><span id="speed-val">1.8s</span></div>
       </section>
@@ -78,7 +84,7 @@
     <div id="canvas-tag">CANVAS</div>
     <canvas id="canvas"></canvas>
     <div id="hint">[ D ] Draw  ·  [ Space ] Close  ·  [ P ] Play/Stop  ·  [ Esc ] Discard</div>
-    <div id="t-display"></div>
+    <div id="t-display">changing of t</div>
   </main>
 
   <!-- Toast notification -->
