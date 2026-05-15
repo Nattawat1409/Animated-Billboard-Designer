@@ -241,7 +241,8 @@ function animLoop(timestamp) {
 
   updateProgressTrack();
   updateStatusUI();
-  highlightActiveQueueItem(segIdx);
+  const displayIdx = rawT >= 0.5 ? (segIdx + 1) % S.animQueue.length : segIdx;
+  highlightActiveQueueItem(displayIdx);
   S.animRaf = requestAnimationFrame(animLoop);
 }
 
@@ -436,7 +437,7 @@ $('btn-preset').addEventListener('click', () => {
   if (S.mode === 'animating') stopAnim();
   const cx = canvas.width/2, cy = canvas.height/2, R = canvas.width*0.20;
   const preset   = $('preset-select').value;
-  const naturalN = { circle:8, flower5:10, flower6:12, star5:10, star6:12, heart:10, hexagon:12, triangle:6 };
+  const naturalN = { circle:8, flower5:10, flower6:12, star5:10, star6:12, heart:10, hexagon:12, triangle:10 };
   const N        = S.requiredN > 0 ? S.requiredN : (naturalN[preset] || 10);
   if (['flower5','flower6','star5','star6'].includes(preset) && N % 2 !== 0) {
     toast(`${preset} needs even anchor count (queue uses ${N}).`); return;
@@ -446,6 +447,8 @@ $('btn-preset').addEventListener('click', () => {
     case 'flower5': case 'flower6': anchors = makeFlower(cx, cy, R, N/2, 0.42, 0);  break;
     case 'star5':   case 'star6':   anchors = makeStar(cx, cy, R, N, 0.38, 0);       break;
     case 'heart':                   anchors = makeHeart(cx, cy, R*1.05, N);           break;
+    case 'triangle':                anchors = makeRegularPolygon(cx, cy, R, 3, N);    break;
+    case 'hexagon':                 anchors = makeRegularPolygon(cx, cy, R, 6, N);    break;
     default:                        anchors = makeCircle(cx, cy, R, N);               break;
   }
   let shape = anchorsToBezier(anchors);
@@ -464,7 +467,7 @@ $('btn-preset').addEventListener('click', () => {
 
 function startAnim() {
   if (S.mode === 'animating') return;
-  S.mode = 'animating'; S.lastTs = 0;
+  S.mode = 'animating'; S.animT = 0; S.lastTs = 0;
   setCanvasMode('animating');
   $('btn-play').disabled = true; $('btn-stop').disabled = false;
   S.animRaf = requestAnimationFrame(animLoop);

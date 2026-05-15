@@ -118,6 +118,26 @@ function makeHeart(cx, cy, R, N) {
 
 function makePolygon(cx, cy, R, N) { return makeCircle(cx, cy, R, N); }
 
+// distribute N anchors evenly along the perimeter of a regular polygon with `sides` corners
+// keeps sharp edges regardless of N — used for triangle, hexagon, etc.
+function makeRegularPolygon(cx, cy, R, sides, N) {
+  const verts = [];
+  for (let v = 0; v < sides; v++) {
+    const a = (v / sides) * Math.PI * 2 - Math.PI / 2;
+    verts.push({ x: cx + R * Math.cos(a), y: cy + R * Math.sin(a) });
+  }
+  const anchors = [];
+  for (let i = 0; i < N; i++) {
+    const pos  = (i / N) * sides;
+    const edge = Math.floor(pos) % sides;
+    const t    = pos - Math.floor(pos);
+    const v0   = verts[edge];
+    const v1   = verts[(edge + 1) % sides];
+    anchors.push({ x: v0.x + (v1.x - v0.x) * t, y: v0.y + (v1.y - v0.y) * t });
+  }
+  return anchors;
+}
+
 
 // build default preset queue — 4 shapes, all cycle-aligned
 function buildPresetQueue(cx, cy, R) {
