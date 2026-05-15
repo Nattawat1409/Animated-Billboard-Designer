@@ -195,6 +195,35 @@ function makeHeart(cx, cy, R, N) {
 }
 
 
+/**
+ * Star preset — N/2 sharp outer points alternating with N/2 inner points.
+ * Visually distinct from the flower because innerRatio is much smaller.
+ *
+ * @param {number} cx
+ * @param {number} cy
+ * @param {number} R           outer (tip) radius
+ * @param {number} N           total anchor count (must be even; N/2 = point count)
+ * @param {number} innerRatio  inner radius / outer radius — default 0.4 gives sharp tips
+ * @param {number} rotation    starting angle in radians
+ */
+function makeStar(cx, cy, R, N, innerRatio = 0.38, rotation = 0) {
+  const anchors = [];
+  for (let i = 0; i < N; i++) {
+    const a = (i / N) * Math.PI * 2 - Math.PI / 2 + rotation;
+    const r = (i % 2 === 0) ? R : R * innerRatio;
+    anchors.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) });
+  }
+  return anchors;
+}
+
+/**
+ * Regular polygon (N-gon) — like makeCircle but named explicitly for clarity.
+ * Triangle = N 6 anchors / 3 sides, Hexagon = N 12/6, etc.
+ */
+function makePolygon(cx, cy, R, N) {
+  return makeCircle(cx, cy, R, N);
+}
+
 // ──────────────────────────────────────────────────────────────────────────
 //  Convenience: build a full preset queue ready for animation.
 //  Used by app.js on startup so users see a working animation immediately.

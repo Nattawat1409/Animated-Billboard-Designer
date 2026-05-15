@@ -1,12 +1,6 @@
 /* ============================================================================
- *  bezier.js — Bézier Curve Mathematics
- *  Reference: CPE361 Computer Graphics, Module 3-2 (Assc. Prof. Dr. Natasha
- *  Dejdumrong). Implements the three equivalent forms of cubic Bézier
- *  evaluation taught in the lecture, plus easing & shape interpolation
+ *  bezier.js — Bézier Curve Mathematics 
  *  utilities used by the morphing engine.
- *
- *  All functions are exposed as globals (no module system) so the project
- *  can be opened directly via file:// in any browser.
  * ============================================================================ */
 
 "use strict";
@@ -17,7 +11,7 @@
 //  Source: Lecture slide 3 — "Bezier Curve / Bernstein polynomials".
 // ──────────────────────────────────────────────────────────────────────────
 
-/** Binomial coefficient C(n, i) = n! / (i! · (n-i)!). */
+/** From Binomial coefficient C(n, i) = n! / (i! · (n-i)!). */
 function binomial(n, i) {
   if (i < 0 || i > n) return 0;
   let coef = 1;
@@ -25,7 +19,7 @@ function binomial(n, i) {
   return coef;
 }
 
-/** Bernstein basis polynomial of degree n at parameter t. */
+/** From Bernstein basis polynomial of degree n at parameter t. */
 function bernstein(n, i, t) {
   return binomial(n, i) * Math.pow(t, i) * Math.pow(1 - t, n - i);
 }
@@ -33,7 +27,6 @@ function bernstein(n, i, t) {
 
 // ──────────────────────────────────────────────────────────────────────────
 //  (1) EXPLICIT BERNSTEIN FORM  — Cubic case (degree n = 3)
-//  Lecture slide 5–6:
 //      B(t) = (1−t)³ P₀ + 3t(1−t)² P₁ + 3t²(1−t) P₂ + t³ P₃
 // ──────────────────────────────────────────────────────────────────────────
 
@@ -63,7 +56,6 @@ function cubicBezierBernstein(t, P0, P1, P2, P3) {
 
 // ──────────────────────────────────────────────────────────────────────────
 //  (2) MATRIX REPRESENTATION  —  B(t) = G · M · T
-//  Lecture slide 7:
 //      G = [P₀ P₁ P₂ P₃]                  (control points, row vector)
 //          ⎡ −1   3  −3   1 ⎤
 //      M = ⎢  3  −6   3   0 ⎥             (Bézier basis matrix)
@@ -109,7 +101,6 @@ function cubicBezierMatrix(t, P0, P1, P2, P3) {
 
 // ──────────────────────────────────────────────────────────────────────────
 //  (3) de CASTELJAU RECURSIVE ALGORITHM
-//  Lecture slide 12–14:
 //      b_i^0(t) = b_i                                      (base case)
 //      b_i^r(t) = (1−t)·b_i^(r−1)(t)  +  t·b_{i+1}^(r−1)(t)   (recursion)
 //
@@ -190,7 +181,7 @@ function interpolateShapes(A, B, t) {
 //  UTILITY — sample N points along a cubic segment
 //  Used for the alternate "manual" rendering paths (Bernstein/matrix/de
 //  Casteljau) so users can visually confirm all three forms produce the
-//  same curve, as proved in the lecture.
+//  it provide some curve
 // ──────────────────────────────────────────────────────────────────────────
 
 /**

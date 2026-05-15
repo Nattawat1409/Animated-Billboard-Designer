@@ -279,6 +279,8 @@ function animLoop(timestamp) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawGrid();
 
+  // On the very first frame, seed lastTs so dt = 0 (no jump on resume).
+  if (!S.lastTs) S.lastTs = timestamp;
   const dt   = Math.min((timestamp - S.lastTs) / 1000, 0.1);
   S.lastTs   = timestamp;
   S.animT    = (S.animT + dt / S.animSpeed) % S.animQueue.length;
@@ -469,7 +471,7 @@ $('btn-reset').addEventListener('click', () => {
   stopAnim();
   Object.assign(S, {
     mode: 'idle', drawAnchors: [], currentShape: null, dragIdx: -1,
-    animQueue: [], requiredN: 0, animT: 0,
+    animQueue: [], requiredN: 0, animT: 0, lastTs: 0,
   });
   $('btn-add').disabled     = true;
   $('btn-discard').disabled = true;
@@ -479,6 +481,64 @@ $('btn-reset').addEventListener('click', () => {
   canvas.style.cursor = 'default';
   updateQueueUI();
   staticRender();
+});
+
+// Preset shape quick-add
+$('btn-preset').addEventListener('click', () => {
+  if (S.mode === 'animating') stopAnim();
+
+  const cx     = canvas.width  / 2;
+  const cy     = canvas.height / 2;
+  const R      = canvas.width  * 0.20;
+  const preset = $('preset-select').value;
+
+  // Natural anchor count for each preset type
+  const naturalN = {
+    circle: 8, flower5: 10, flower6: 12,
+    star5: 10, star6: 12,
+    heart: 10, hexagon: 12, triangle: 6,
+  };
+
+  const N = S.requiredN > 0 ? S.requiredN : (naturalN[preset] || 10);
+
+  // Petal/point presets require even N
+  const needsEven = ['flower5','flower6','star5','star6'].includes(preset);
+  if (needsEven && N % 2 !== 0) {
+    toast(`${preset} needs an even anchor count (current queue uses ${N}).`);
+    return;
+  }
+
+  let anchors;
+  switch (preset) {
+    case 'flower5': anchors = makeFlower(cx, cy, R, N / 2, 0.42, 0);               break;
+    case 'flower6': anchors = makeFlower(cx, cy, R, N / 2, 0.42, 0);               break;
+    case 'star5':   anchors = makeStar(cx, cy, R, N, 0.38, 0);                     break;
+    case 'star6':   anchors = makeStar(cx, cy, R, N, 0.38, 0);                     break;
+    case 'heart':   anchors = makeHeart(cx, cy, R * 1.05, N);                      break;
+    case 'hexagon': anchors = makeCircle(cx, cy, R, N);                            break;
+    case 'triangle':anchors = makeCircle(cx, cy, R, N);                            break;
+    default:        anchors = makeCircle(cx, cy, R, N);                            break;
+  }
+
+  let shape   = anchorsToBezier(anchors);
+  const actualN = shape.length / 3;
+
+  if (S.requiredN > 0 && actualN !== S.requiredN) {
+    toast(`Preset has ${actualN} anchors but queue needs ${S.requiredN}.`);
+    return;
+  }
+
+  if (S.animQueue.length > 0) {
+    shape = reorderToMatch(shape, S.animQueue[S.animQueue.length - 1]);
+  } else {
+    S.requiredN = actualN;
+  }
+
+  S.animQueue.push(shape);
+  $('btn-play').disabled = S.animQueue.length < 2;
+  updateQueueUI();
+  staticRender();
+  toast(`Added ${preset} (${actualN} anchors) to queue`);
 });
 
 // Speed slider
@@ -501,8 +561,9 @@ $('bezier-method').addEventListener('change', () => {
 function startAnim() {
   if (S.mode === 'animating') return;
   S.mode    = 'animating';
-  S.animT   = 0;
-  S.lastTs  = performance.now();
+  // Preserve S.animT so pressing Play resumes from the paused position.
+  // S.lastTs = 0 signals animLoop to initialise on the first frame (no dt jump).
+  S.lastTs  = 0;
   $('btn-play').disabled = true;
   $('btn-stop').disabled = false;
   S.animRaf = requestAnimationFrame(animLoop);
@@ -510,7 +571,8 @@ function startAnim() {
 
 function stopAnim() {
   if (S.animRaf) { cancelAnimationFrame(S.animRaf); S.animRaf = null; }
-  S.mode = 'idle';
+  S.mode   = 'idle';
+  S.lastTs = 0;   // reset for next startAnim call
   $('t-display').textContent = '';
   $('btn-play').disabled = S.animQueue.length < 2;
   $('btn-stop').disabled = true;
@@ -597,10 +659,50 @@ function updateQueueUI() {
   S.animQueue.forEach((shape, i) => {
     const el = document.createElement('div');
     el.className = 'q-item';
-    el.innerHTML = `<span class="q-num">SHAPE ${i + 1}</span>
-                    <span class="q-pts">${shape.length / 3} pts</span>`;
+    el.innerHTML =
+      `<span class="q-num">SHAPE ${i + 1}</span>` +
+      `<span class="q-pts">${shape.length / 3} pts</span>` +
+      `<div class="q-actions">` +
+        `<button class="q-btn q-edit" data-idx="${i}" title="Re-edit this shape">✏</button>` +
+        `<button class="q-btn q-del"  data-idx="${i}" title="Remove this shape">✕</button>` +
+      `</div>`;
     list.appendChild(el);
   });
+
+  list.querySelectorAll('.q-edit').forEach(btn =>
+    btn.addEventListener('click', () => editQueueItem(+btn.dataset.idx)));
+  list.querySelectorAll('.q-del').forEach(btn =>
+    btn.addEventListener('click', () => deleteQueueItem(+btn.dataset.idx)));
+}
+
+/** Pull a shape out of the queue and put it back into the editing canvas. */
+function editQueueItem(idx) {
+  if (S.mode === 'animating') stopAnim();
+  S.currentShape  = S.animQueue[idx].slice();   // copy
+  S.animQueue.splice(idx, 1);
+  S.mode = 'editing';
+  $('btn-add').disabled     = false;
+  $('btn-discard').disabled = false;
+  $('btn-play').disabled    = S.animQueue.length < 2;
+  canvas.style.cursor = 'default';
+  updateQueueUI();
+  staticRender();
+  toast(`Editing shape ${idx + 1} — drag points, then ＋ Add to Animation`);
+}
+
+/** Remove a shape from the queue entirely. */
+function deleteQueueItem(idx) {
+  if (S.mode === 'animating') stopAnim();
+  S.animQueue.splice(idx, 1);
+  if (S.animQueue.length === 0) {
+    S.requiredN = 0;
+    S.animT     = 0;
+  } else if (S.animT >= S.animQueue.length) {
+    S.animT = 0;
+  }
+  $('btn-play').disabled = S.animQueue.length < 2;
+  updateQueueUI();
+  staticRender();
 }
 
 let toastTimer;
